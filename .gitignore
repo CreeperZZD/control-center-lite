@@ -8,3 +8,5 @@ package/*.zip
 .vs/
 ProtoTest/bin/
 ProtoTest/obj/
+patch_*.py
+*.png
