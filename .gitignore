@@ -10,3 +10,4 @@ ProtoTest/bin/
 ProtoTest/obj/
 patch_*.py
 *.png
+hosts.backup.txt
