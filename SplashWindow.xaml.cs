@@ -12,10 +12,10 @@ public partial class SplashWindow : Window
     {
         InitializeComponent();
         // 假进度：先缓爬到 99，真正就绪时由 Finish() 推到 100
-        _pTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(90) };
+        _pTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(55) };
         _pTimer.Tick += (_, _) =>
         {
-            _value = Math.Min(99, _value + (99 - _value) * 0.08 + 0.6);
+            _value = Math.Min(99, _value + (99 - _value) * 0.16 + 1.8);
             Progress.Value = _value;
         };
         _pTimer.Start();

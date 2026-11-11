@@ -114,12 +114,12 @@ public partial class App : Application
             }
 
             // 让 100% 状态停留一瞬再收起加载窗
-            var st = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(280) };
+            var st = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(140) };
             st.Tick += (_, _) => { st.Stop(); if (splash.IsLoaded) splash.Close(); };
             st.Start();
 
             // 自检开关：--shot 渲染灯光页到 PNG 后退出（开发验证用）
-            if (e.Args.Any(a => a.Equals("--shot", StringComparison.OrdinalIgnoreCase)))
+            if (e.Args.Any(a => a.StartsWith("--shot", StringComparison.OrdinalIgnoreCase)))
             {
                 var t = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(2.5) };
                 t.Tick += (_, _) =>
@@ -128,6 +128,15 @@ public partial class App : Application
                     try
                     {
                         _mainWindow.ShowLighting();
+                        if (e.Args.Any(a => a.Equals("--shotcustom", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            _mainWindow.DevSelectCustomChip();
+                        }
+                        else
+                        {
+                            _mainWindow.DevPaintPreview();
+                            _mainWindow.DevOpenPanel();
+                        }
                         // 等页面淡入动画（240ms）完成后再截图，否则截到透明帧
                         var t2 = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(900) };
                         t2.Tick += (_, _) => { t2.Stop(); RenderShot(); };

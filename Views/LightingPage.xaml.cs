@@ -449,7 +449,9 @@ public partial class LightingPage : UserControl
             1 => GMReg.ValGame,
             2 => GMReg.ValPowerSaving,
             3 => GMReg.ValCustom,
-            _ => LedService.ProfileForMode(PowerModeService.GetCurrentMode()).Profile,
+            _ => LedService.GetCustomOverride() == 1
+                ? GMReg.ValCustom   // 自定义接管开启时，"跟随当前模式"=自定义
+                : LedService.ProfileForMode(PowerModeService.GetCurrentMode()).Profile,
         };
         _editingProfile = profile;
         ProfileHintText.Text = $"正在编辑档案：{profile}　—　编辑会实时写入键盘并保存，与原版灯光页互通";
@@ -461,7 +463,29 @@ public partial class LightingPage : UserControl
         RefreshZoneUI();
         RefreshUnifiedUI();
         RefreshMasterToggle();   // 开关跟随当前选择的档案
+        SyncCustomOverrideUI();
         _suppress = false;
+    }
+
+    /// <summary>自定义接管开关：仅当选中"自定义"档案时显示在预览右下角。</summary>
+    private void SyncCustomOverrideUI()
+    {
+        CustomOverrideHost.Visibility = ChipCustom.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        _suppress = true;
+        CustomOverrideToggle.IsChecked = LedService.GetCustomOverride() == 1;
+        _suppress = false;
+    }
+
+    private void CustomOverride_Changed(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded || _suppress) return;
+        bool on = CustomOverrideToggle.IsChecked == true;
+        LedService.SetCustomOverride(on);
+        LedService.FxLog("custom override -> " + (on ? "ON" : "OFF"));
+        if (on)
+            LedService.ApplyProfile(GMReg.ValCustom, 3);   // 立即应用自定义灯效
+        else
+            LedService.ApplyProfileForMode(PowerModeService.GetCurrentMode());   // 关闭后回到按模式联动
     }
 
     // ---------- 统一颜色开关（记住开启前的三分区颜色） ----------
@@ -663,6 +687,12 @@ public partial class LightingPage : UserControl
     private void ColorPopupClose_Click(object sender, RoutedEventArgs e)
     {
         ClosePopup();
+    }
+
+    /// <summary>自检用：切到自定义档案（触发接管开关显示）。</summary>
+    public void DevSelectCustomChip()
+    {
+        ChipCustom.IsChecked = true;
     }
 
     /// <summary>自检用：直接打开调色面板。</summary>

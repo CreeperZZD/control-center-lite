@@ -101,6 +101,12 @@ public partial class MainWindow : Window
         NavLighting.IsChecked = true;
     }
 
+    /// <summary>自检用：选中自定义档案。</summary>
+    public void DevSelectCustomChip()
+    {
+        _lightingPage.DevSelectCustomChip();
+    }
+
     /// <summary>自检用：打开调色面板。</summary>
     public void DevOpenPanel()
     {

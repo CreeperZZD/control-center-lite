@@ -130,16 +130,28 @@ public static class LedService
     /// <summary>把当前系统模式对应的灯效档案重放到 EC（修复原版"切模式灯效不变"的缺陷）。</summary>
     public static void ApplyProfileForMode(uint sysMode)
     {
+        // 自定义接管开启 → 任何系统模式都用自定义档案（最高优先级）
+        if (GetCustomOverride() == 1)
+        {
+            ApplyProfile(GMReg.ValCustom, 3);
+            return;
+        }
         var (profile, moduleId) = ProfileForMode(sysMode);
         ApplyProfile(profile, moduleId);
     }
+
+    // ---------- 自定义接管（最高优先级：开启后切换系统模式保持自定义灯效） ----------
+
+    public static byte GetCustomOverride() => (byte)Math.Clamp(GMReg.Get("CustomOverride", 0), 0, 1);
+
+    public static void SetCustomOverride(bool on) => GMReg.Set("CustomOverride", on ? 1u : 0u);
 
     /// <summary>应用指定档案：开关开=写入键盘；关=写熄灭（颜色记忆保留在档案里）。</summary>
     public static void ApplyProfile(string profileValueName, uint moduleId)
     {
         var parts = LoadProfile(profileValueName);
         bool on = GetProfileOn(profileValueName) == 1;
-        FxLog($"ApplyProfile {profileValueName} on={on} parts={parts[2]:X}/{parts[3]:X}/{parts[4]:X}");
+        FxLog($"ApplyProfile {profileValueName} on={on} override={GetCustomOverride()} parts={parts[2]:X}/{parts[3]:X}/{parts[4]:X}");
         for (int i = 0; i < 3; i++)
         {
             var data = parts[2 + i];
