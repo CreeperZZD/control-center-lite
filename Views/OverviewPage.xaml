@@ -130,7 +130,17 @@
                 </StackPanel>
             </Border>
 
-            <TextBlock Text="本机配置" Style="{StaticResource SectionTitle}"/>
+            <Grid>
+                <TextBlock Text="本机配置" Style="{StaticResource SectionTitle}"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button x:Name="BtnCfgEdit" Style="{StaticResource StandardButton}" Padding="10,4" FontSize="12"
+                            Content="编辑" Click="CfgEdit_Click"/>
+                    <Button x:Name="BtnCfgSave" Style="{StaticResource AccentButton}" Padding="10,4" FontSize="12"
+                            Content="保存" Margin="8,0,0,0" Click="CfgSave_Click" Visibility="Collapsed"/>
+                    <Button x:Name="BtnCfgCancel" Style="{StaticResource StandardButton}" Padding="10,4" FontSize="12"
+                            Content="取消" Margin="8,0,0,0" Click="CfgCancel_Click" Visibility="Collapsed"/>
+                </StackPanel>
+            </Grid>
             <Border Style="{StaticResource Card}">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -138,22 +148,37 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="26"/>
-                        <RowDefinition Height="26"/>
-                        <RowDefinition Height="26"/>
-                        <RowDefinition Height="26"/>
-                        <RowDefinition Height="26"/>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="30"/>
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="型号" Style="{StaticResource SecondaryText}" Margin="0,0,26,0"/>
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="七彩虹 G16 24 笔记本" Style="{StaticResource BodyText}"/>
+                    <TextBlock x:Name="CfgModelT" Grid.Row="0" Grid.Column="1" Style="{StaticResource BodyText}"/>
+                    <TextBox x:Name="CfgModel" Grid.Row="0" Grid.Column="1" Height="26" FontSize="13" Padding="6,2"
+                             Background="{StaticResource ControlBgBrush}" Foreground="{StaticResource TextBrush}"
+                             BorderBrush="#454545" Visibility="Collapsed"/>
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="屏幕" Style="{StaticResource SecondaryText}"/>
-                    <TextBlock Grid.Row="1" Grid.Column="1" Text='16" 2560×1600（2.5K · 16:10）' Style="{StaticResource BodyText}"/>
+                    <TextBlock x:Name="CfgScreenT" Grid.Row="1" Grid.Column="1" Style="{StaticResource BodyText}"/>
+                    <TextBox x:Name="CfgScreen" Grid.Row="1" Grid.Column="1" Height="26" FontSize="13" Padding="6,2"
+                             Background="{StaticResource ControlBgBrush}" Foreground="{StaticResource TextBrush}"
+                             BorderBrush="#454545" Visibility="Collapsed"/>
                     <TextBlock Grid.Row="2" Grid.Column="0" Text="处理器" Style="{StaticResource SecondaryText}"/>
-                    <TextBlock Grid.Row="2" Grid.Column="1" Text="英特尔® 酷睿™ i7-13650HX（14核 / 16线程）" Style="{StaticResource BodyText}"/>
+                    <TextBlock x:Name="CfgCpuT" Grid.Row="2" Grid.Column="1" Style="{StaticResource BodyText}"/>
+                    <TextBox x:Name="CfgCpu" Grid.Row="2" Grid.Column="1" Height="26" FontSize="13" Padding="6,2"
+                             Background="{StaticResource ControlBgBrush}" Foreground="{StaticResource TextBrush}"
+                             BorderBrush="#454545" Visibility="Collapsed"/>
                     <TextBlock Grid.Row="3" Grid.Column="0" Text="显卡" Style="{StaticResource SecondaryText}"/>
-                    <TextBlock Grid.Row="3" Grid.Column="1" Text="NVIDIA® GeForce RTX™ 4070 Laptop GPU（8GB GDDR6）" Style="{StaticResource BodyText}"/>
+                    <TextBlock x:Name="CfgGpuT" Grid.Row="3" Grid.Column="1" Style="{StaticResource BodyText}"/>
+                    <TextBox x:Name="CfgGpu" Grid.Row="3" Grid.Column="1" Height="26" FontSize="13" Padding="6,2"
+                             Background="{StaticResource ControlBgBrush}" Foreground="{StaticResource TextBrush}"
+                             BorderBrush="#454545" Visibility="Collapsed"/>
                     <TextBlock Grid.Row="4" Grid.Column="0" Text="内存" Style="{StaticResource SecondaryText}"/>
-                    <TextBlock Grid.Row="4" Grid.Column="1" Text="32GB DDR5 4800MHz" Style="{StaticResource BodyText}"/>
+                    <TextBlock x:Name="CfgRamT" Grid.Row="4" Grid.Column="1" Style="{StaticResource BodyText}"/>
+                    <TextBox x:Name="CfgRam" Grid.Row="4" Grid.Column="1" Height="26" FontSize="13" Padding="6,2"
+                             Background="{StaticResource ControlBgBrush}" Foreground="{StaticResource TextBrush}"
+                             BorderBrush="#454545" Visibility="Collapsed"/>
                 </Grid>
             </Border>
 

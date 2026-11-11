@@ -126,7 +126,7 @@ public partial class LightingPage : UserControl
 
     // ---------- 圆形调色盘 ----------
 
-    private const int WheelSize = 188;
+    private const int WheelSize = 150;   // 与 XAML 中 Image/Grid 尺寸一致，否则手柄位置错位
     private bool _wheelDragging;
     private double _curHue, _curSat = 100;
 
@@ -200,8 +200,8 @@ public partial class LightingPage : UserControl
     {
         double rad = _curSat / 100.0 * (WheelSize / 2.0 - 3);
         double a = _curHue * Math.PI / 180;
-        Canvas.SetLeft(WheelHandle, WheelSize / 2.0 + rad * Math.Cos(a) - 9);
-        Canvas.SetTop(WheelHandle, WheelSize / 2.0 + rad * Math.Sin(a) - 9);
+        Canvas.SetLeft(WheelHandle, WheelSize / 2.0 + rad * Math.Cos(a) - 8);   // 手柄 16px，取中心
+        Canvas.SetTop(WheelHandle, WheelSize / 2.0 + rad * Math.Sin(a) - 8);
     }
 
     // ---------- 键盘预览（严格按实拍 G16 24） ----------

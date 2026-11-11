@@ -19,6 +19,7 @@ public partial class OverviewPage : UserControl
         Loaded += (_, _) =>
         {
             RefreshModeSelection();
+            LoadConfig();
             InitAudioVisual();
             OnSnapshot(App.Monitor.PollOnce());
             App.Monitor.SnapshotUpdated += OnSnapshot;
@@ -44,6 +45,75 @@ public partial class OverviewPage : UserControl
         if (bri < 0) return;
         BrightnessSlider.Value = bri;
         BrightnessText.Text = bri + "%";
+    }
+
+    // ---------- 本机配置（可编辑，存注册表；其他电脑用户可自行修改） ----------
+
+    private static readonly (string Key, string Default)[] CfgFields =
+    {
+        ("CfgModel", "七彩虹 G16 24 笔记本"),
+        ("CfgScreen", "16英寸 2560×1600（2.5K · 16:10）"),
+        ("CfgCpu", "英特尔® 酷睿™ i7-13650HX（14核 / 16线程）"),
+        ("CfgGpu", "NVIDIA® GeForce RTX™ 4070 Laptop GPU（8GB GDDR6）"),
+        ("CfgRam", "32GB DDR5 4800MHz"),
+    };
+
+    private void LoadConfig()
+    {
+        var keys = new[] { "CfgModelT", "CfgScreenT", "CfgCpuT", "CfgGpuT", "CfgRamT" };
+        for (int i = 0; i < CfgFields.Length; i++)
+        {
+            var v = GMReg.GetStr(CfgFields[i].Key, CfgFields[i].Default);
+            if (string.IsNullOrWhiteSpace(v)) v = CfgFields[i].Default;
+            var t = (TextBlock)FindName(keys[i]);
+            var box = (TextBox)FindName(CfgFields[i].Key);
+            if (t != null) t.Text = v;
+            if (box != null) box.Text = v;
+        }
+    }
+
+    private void CfgEdit_Click(object sender, RoutedEventArgs e)
+    {
+        var keys = new[] { "CfgModelT", "CfgScreenT", "CfgCpuT", "CfgGpuT", "CfgRamT" };
+        for (int i = 0; i < CfgFields.Length; i++)
+        {
+            ((TextBlock)FindName(keys[i])).Visibility = Visibility.Collapsed;
+            ((TextBox)FindName(CfgFields[i].Key)).Visibility = Visibility.Visible;
+        }
+        BtnCfgEdit.Visibility = Visibility.Collapsed;
+        BtnCfgSave.Visibility = Visibility.Visible;
+        BtnCfgCancel.Visibility = Visibility.Visible;
+    }
+
+    private void CfgSave_Click(object sender, RoutedEventArgs e)
+    {
+        foreach (var (key, _) in CfgFields)
+        {
+            var v = ((TextBox)FindName(key)).Text.Trim();
+            if (v == "") v = CfgFields.First(f => f.Key == key).Default;
+            GMReg.SetStr(key, v);
+        }
+        ExitCfgEdit();
+        LoadConfig();
+    }
+
+    private void CfgCancel_Click(object sender, RoutedEventArgs e)
+    {
+        ExitCfgEdit();
+        LoadConfig();
+    }
+
+    private void ExitCfgEdit()
+    {
+        var keys = new[] { "CfgModelT", "CfgScreenT", "CfgCpuT", "CfgGpuT", "CfgRamT" };
+        for (int i = 0; i < CfgFields.Length; i++)
+        {
+            ((TextBlock)FindName(keys[i])).Visibility = Visibility.Visible;
+            ((TextBox)FindName(CfgFields[i].Key)).Visibility = Visibility.Collapsed;
+        }
+        BtnCfgEdit.Visibility = Visibility.Visible;
+        BtnCfgSave.Visibility = Visibility.Collapsed;
+        BtnCfgCancel.Visibility = Visibility.Collapsed;
     }
 
     // ---------- 屏幕亮度 / 系统音量 ----------
