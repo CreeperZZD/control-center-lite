@@ -374,8 +374,7 @@ public partial class LightingPage : UserControl
             MakeStatic(zone);
             LedService.SaveKeyboardToProfile(_editingProfile, _parts);
         }
-        if (_isOn)
-            LedService.WriteKeyboardZones(_parts);   // 关闭状态下不写键盘（只存档案）
+        LedService.WriteKeyboardZones(_parts);   // 编辑始终实时写键盘（所见即所得）
         RefreshZoneUI();
         OpenColorPopup(zone, anchor);
     }
@@ -568,22 +567,23 @@ public partial class LightingPage : UserControl
             var unified = _parts[4];
             _parts[2] = unified;
             _parts[3] = unified;
-            if (_isOn)
-                for (int i = 0; i < 3; i++) LedService.WriteZone(LedService.KeyboardSlots[i], unified);
+            for (int i = 0; i < 3; i++) LedService.WriteZone(LedService.KeyboardSlots[i], unified);
             LedService.SaveKeyboardToProfile(_editingProfile, _parts);
             return;
         }
         var data = _parts[2 + zone];
-        if (_isOn) LedService.WriteZone(LedService.KeyboardSlots[zone], data);   // 关闭时只存档案不写键盘
+        LedService.WriteZone(LedService.KeyboardSlots[zone], data);   // 编辑始终实时写键盘（所见即所得）
         LedService.SaveKeyboardToProfile(_editingProfile, _parts);
+        LedService.FxLog("ApplyZone " + zone + " data=" + data.ToString("X"));
     }
 
     private void ApplyEffect(byte mode)
     {
+        LedService.FxLog("ApplyEffect mode=" + mode);
         for (int i = 0; i < 3; i++)
         {
             _parts[2 + i] = LedService.MakeData(mode, LedService.GetBrightness(_parts[2 + i]), LedService.GetColor(_parts[2 + i]));
-            if (_isOn) LedService.WriteZone(LedService.KeyboardSlots[i], _parts[2 + i]);
+            LedService.WriteZone(LedService.KeyboardSlots[i], _parts[2 + i]);
         }
         LedService.SaveKeyboardToProfile(_editingProfile, _parts);
         RefreshZoneUI();
@@ -596,7 +596,7 @@ public partial class LightingPage : UserControl
         for (int i = 0; i < 3; i++)
         {
             _parts[2 + i] = LedService.MakeData(LedService.GetMode(_parts[2 + i]), brightness, LedService.GetColor(_parts[2 + i]));
-            if (_isOn) LedService.WriteZone(LedService.KeyboardSlots[i], _parts[2 + i]);
+            LedService.WriteZone(LedService.KeyboardSlots[i], _parts[2 + i]);
         }
         LedService.SaveKeyboardToProfile(_editingProfile, _parts);
         GMReg.Set(GMReg.ValAlpha, brightness);
@@ -620,19 +620,23 @@ public partial class LightingPage : UserControl
     {
         if (!IsLoaded || _suppress) return;
         bool on = MasterToggle.IsChecked == true;
+        var curMode = PowerModeService.GetCurrentMode();
+        var (curProfile, curModule) = LedService.ProfileForMode(curMode);
         _isOn = on;
-        LedService.SetProfileOn(_editingProfile, on);
+        LedService.SetProfileOn(curProfile, on);
+        LedService.FxLog("toggle " + curProfile + " -> " + (on ? "ON" : "OFF"));
         if (on)
         {
-            // 开 = 应用下方配置的灯效（当前档案数据）
-            LedService.WriteKeyboardZones(_parts);
-            RefreshZoneUI();
+            // 开 = 应用该模式档案的灯效
+            LedService.ApplyProfile(curProfile, curModule);
+            if (_editingProfile == curProfile) RefreshZoneUI();
         }
         else
         {
-            // 关 = 键盘熄灭；档案配置保留，下方仍可继续编辑
+            // 关 = 该模式档案不点亮（键盘熄灭；档案配置保留，下方仍可继续编辑）
+            var parts = LedService.LoadProfile(curProfile);
             for (int i = 0; i < 3; i++)
-                LedService.WriteZone(LedService.KeyboardSlots[i], (uint)(_parts[2 + i] & 0x00FFFFFF));
+                LedService.WriteZone(LedService.KeyboardSlots[i], (uint)(parts[2 + i] & 0x00FFFFFF));
         }
     }
 
@@ -837,7 +841,9 @@ public partial class LightingPage : UserControl
     private void RefreshMasterToggle()
     {
         _suppress = true;
-        _isOn = LedService.GetProfileOn(_editingProfile) == 1;
+        // 开关 = 当前系统模式对应档案的启停（与编辑目标解耦，避免误改其他档案）
+        var curProfile = LedService.ProfileForMode(PowerModeService.GetCurrentMode()).Profile;
+        _isOn = LedService.GetProfileOn(curProfile) == 1;
         MasterToggle.IsChecked = _isOn;
         _suppress = false;
     }

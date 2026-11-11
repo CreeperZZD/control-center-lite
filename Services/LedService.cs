@@ -88,26 +88,17 @@ public static class LedService
         GMReg.SetStr(valueName, string.Join(";", arr));
     }
 
-    // ---------- 按灯效档案的开关（每个档案独立记忆；关=该档案不点亮） ----------
+    // ---------- 按灯效档案的开关（v2：每档案独立记忆；编辑始终实时写键盘，开关只决定模式切换时亮不亮） ----------
 
-    /// <summary>读取档案的灯效开关（0=熄灭 1=点亮）。首次访问从旧的按模式值迁移。</summary>
+    /// <summary>读取档案的灯效开关（0=切换到该档案时不点亮 1=点亮）。</summary>
     public static byte GetProfileOn(string profileValueName)
     {
-        if (GMReg.Get("LedOnMigrated", 0) != 1)
+        if (GMReg.Get("LedOnV2", 0) != 1)
         {
-            // 迁移：旧 LedOnMode0/1/2（0狂暴→HighPerformance 1游戏→Game 2办公→PowerSaving）
-            var map = new (uint Mode, string Val)[]
-            {
-                (0, GMReg.ValHighPerf), (1, GMReg.ValGame), (2, GMReg.ValPowerSaving),
-            };
-            foreach (var (mode, val) in map)
-            {
-                uint v = GMReg.Get("LedOnMode" + mode, 255);
-                if (v == 255) v = GMReg.Get(GMReg.ValLedWizard, 1) == 0 ? 0u : 1u;
-                GMReg.Set("LedOn_" + val, v == 0 ? 0u : 1u);
-            }
-            GMReg.Set("LedOn_" + GMReg.ValCustom, 1u);
-            GMReg.Set("LedOnMigrated", 1);
+            // v2 迁移：清除早期版本因语义混淆误写的开关数据，全部重置为"开"
+            foreach (var val in new[] { GMReg.ValGame, GMReg.ValHighPerf, GMReg.ValPowerSaving, GMReg.ValCustom })
+                GMReg.Set("LedOn_" + val, 1u);
+            GMReg.Set("LedOnV2", 1);
         }
         return (byte)Math.Clamp(GMReg.Get("LedOn_" + profileValueName, 1), 0, 1);
     }
@@ -148,6 +139,7 @@ public static class LedService
     {
         var parts = LoadProfile(profileValueName);
         bool on = GetProfileOn(profileValueName) == 1;
+        FxLog($"ApplyProfile {profileValueName} on={on} parts={parts[2]:X}/{parts[3]:X}/{parts[4]:X}");
         for (int i = 0; i < 3; i++)
         {
             var data = parts[2 + i];
@@ -158,6 +150,19 @@ public static class LedService
         }
         GMReg.Set(GMReg.ValLedModule, moduleId);
         GMReg.Set(GMReg.ValLedWizard, on ? 1u : 0u);
+    }
+
+    /// <summary>灯效写入诊断日志（%LOCALAPPDATA%\CCLite\fx.log）。</summary>
+    public static void FxLog(string msg)
+    {
+        try
+        {
+            var dir = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CCLite");
+            System.IO.Directory.CreateDirectory(dir);
+            System.IO.File.AppendAllText(System.IO.Path.Combine(dir, "fx.log"),
+                "[" + DateTime.Now.ToString("HH:mm:ss.fff") + "] " + msg + Environment.NewLine);
+        }
+        catch { }
     }
 
     /// <summary>NLY 亮度档显示文本。</summary>
