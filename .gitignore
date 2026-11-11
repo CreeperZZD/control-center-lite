@@ -1,0 +1,10 @@
+bin/
+obj/
+publish/
+package/build/
+package/*.zip
+*.user
+*.log
+.vs/
+ProtoTest/bin/
+ProtoTest/obj/

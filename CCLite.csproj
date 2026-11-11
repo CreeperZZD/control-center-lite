@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <PlatformTarget>x64</PlatformTarget>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>assets\app.ico</ApplicationIcon>
+    <AssemblyName>CCLite</AssemblyName>
+    <RootNamespace>CCLite</RootNamespace>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Version>1.0.0</Version>
+    <Product>控制中心</Product>
+    <AssemblyTitle>控制中心 (CCLite)</AssemblyTitle>
+    <Description>七彩虹隐星G16（广达模具）轻量控制面板 — 基于 Control Center WMI-EC 逆向协议</Description>
+    <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="assets\app.ico" />
+    <Resource Include="assets\tray.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Management" Version="9.0.0" />
+  </ItemGroup>
+
+  <!-- WPF+WinForms 混用：移除隐式全局 using，避免 UserControl/Color/Timer 等类型二义性 -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <!-- 排除嵌套的协议测试子项目 -->
+  <ItemGroup>
+    <Compile Remove="ProtoTest/**" />
+    <None Remove="ProtoTest/**" />
+    <Content Remove="ProtoTest/**" />
+  </ItemGroup>
+
+</Project>

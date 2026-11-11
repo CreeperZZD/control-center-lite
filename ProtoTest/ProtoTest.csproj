@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseWPF>true</UseWPF>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>ProtoTest</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Management" Version="9.0.0" />
+    <Compile Include="..\Services\GmWmiService.cs" Link="GmWmiService.cs" />
+    <Compile Include="..\Services\GMReg.cs" Link="GMReg.cs" />
+    <Compile Include="..\Services\LedService.cs" Link="LedService.cs" />
+    <Compile Include="..\Services\PowerModeService.cs" Link="PowerModeService.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+</Project>
