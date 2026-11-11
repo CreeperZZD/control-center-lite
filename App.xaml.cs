@@ -83,9 +83,9 @@ public partial class App : Application
             InitTrayIcon();
 
             Monitor.Start();
-            Fan.RestoreFromRegistry();
 
             // 与原版一致：亮度/灯效按系统模式记忆，启动时恢复当前模式
+            // （放后台：EC 写入不阻塞启动窗口）
             System.Threading.Tasks.Task.Run(() =>
             {
                 try
@@ -100,11 +100,17 @@ public partial class App : Application
             if (startInTray)
             {
                 Monitor.SetFastPolling(false);   // 隐藏状态：不轮询硬件，仅低频检查模式变化
+                try { Fan.RestoreFromRegistry(); } catch { }
             }
             else
             {
                 _mainWindow.Show();
                 splash.Finish();   // 推到 100%
+                // 非关键恢复放到开窗之后（风扇曲线/EC 写入不阻塞启动）
+                System.Threading.Tasks.Task.Run(() =>
+                {
+                    try { Fan.RestoreFromRegistry(); } catch { }
+                });
             }
 
             // 让 100% 状态停留一瞬再收起加载窗

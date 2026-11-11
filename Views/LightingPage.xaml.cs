@@ -30,6 +30,7 @@ public partial class LightingPage : UserControl
     private bool _unified;
 
     private readonly List<(Rectangle Rect, TextBlock Label, int Zone)> _previewKeys = new();   // 预览键盘键格（含文字，便于按亮度切换对比色）
+    private readonly List<byte> _comboModes = new();   // 下拉框索引 → 灯效模式（已跳过"关闭"，显示与取值共用）
     /*
      * 分区（用户实测确认）：
      * A区(0)：Esc~F5、`~4、Tab~R、Caps~F、Shift~C、LCtrl/Win/LAlt
@@ -50,6 +51,7 @@ public partial class LightingPage : UserControl
         foreach (var (mode, name) in LedService.EffectList)
         {
             if (mode == LedService.ModeOff) continue;   // 关闭不是灯效，用总开关
+            _comboModes.Add(mode);
             EffectCombo.Items.Add(name);
         }
         EffectCombo.SelectedIndex = 0;
@@ -458,6 +460,7 @@ public partial class LightingPage : UserControl
         UnifiedToggle.IsChecked = _unified;
         RefreshZoneUI();
         RefreshUnifiedUI();
+        RefreshMasterToggle();   // 开关跟随当前选择的档案
         _suppress = false;
     }
 
@@ -530,13 +533,8 @@ public partial class LightingPage : UserControl
         if (mode != LedService.ModeOff)   // 关灯状态（总开关）不当作灯效显示
         {
             _suppress = true;
-            var listIdx = 0;
-            for (int i = 0; i < LedService.EffectList.Length; i++)
-            {
-                if (LedService.EffectList[i].Mode == LedService.ModeOff) continue;
-                if (LedService.EffectList[i].Mode == mode) { EffectCombo.SelectedIndex = listIdx; break; }
-                listIdx++;
-            }
+            var idx = _comboModes.IndexOf(mode);
+            if (idx >= 0) EffectCombo.SelectedIndex = idx;
             _suppress = false;
         }
 
@@ -607,7 +605,7 @@ public partial class LightingPage : UserControl
     private void Effect_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!IsLoaded || _suppress || EffectCombo.SelectedIndex < 0) return;
-        ApplyEffect(LedService.EffectList[EffectCombo.SelectedIndex].Mode);
+        ApplyEffect(_comboModes[EffectCombo.SelectedIndex]);
     }
 
     private void BriLevel_Checked(object sender, RoutedEventArgs e)
@@ -620,23 +618,20 @@ public partial class LightingPage : UserControl
     {
         if (!IsLoaded || _suppress) return;
         bool on = MasterToggle.IsChecked == true;
-        var curMode = PowerModeService.GetCurrentMode();
-        var (curProfile, curModule) = LedService.ProfileForMode(curMode);
         _isOn = on;
-        LedService.SetProfileOn(curProfile, on);
-        LedService.FxLog("toggle " + curProfile + " -> " + (on ? "ON" : "OFF"));
+        LedService.SetProfileOn(_editingProfile, on);
+        LedService.FxLog("toggle " + _editingProfile + " -> " + (on ? "ON" : "OFF"));
         if (on)
         {
-            // 开 = 应用该模式档案的灯效
-            LedService.ApplyProfile(curProfile, curModule);
-            if (_editingProfile == curProfile) RefreshZoneUI();
+            // 开 = 应用该档案下方配置的灯效
+            LedService.WriteKeyboardZones(_parts);
+            RefreshZoneUI();
         }
         else
         {
-            // 关 = 该模式档案不点亮（键盘熄灭；档案配置保留，下方仍可继续编辑）
-            var parts = LedService.LoadProfile(curProfile);
+            // 关 = 键盘熄灭；该档案配置保留，下方仍可继续编辑（编辑仍实时写键盘）
             for (int i = 0; i < 3; i++)
-                LedService.WriteZone(LedService.KeyboardSlots[i], (uint)(parts[2 + i] & 0x00FFFFFF));
+                LedService.WriteZone(LedService.KeyboardSlots[i], (uint)(_parts[2 + i] & 0x00FFFFFF));
         }
     }
 
@@ -841,9 +836,8 @@ public partial class LightingPage : UserControl
     private void RefreshMasterToggle()
     {
         _suppress = true;
-        // 开关 = 当前系统模式对应档案的启停（与编辑目标解耦，避免误改其他档案）
-        var curProfile = LedService.ProfileForMode(PowerModeService.GetCurrentMode()).Profile;
-        _isOn = LedService.GetProfileOn(curProfile) == 1;
+        // 开关跟随当前选择的灯效档案（点档案胶囊即切换显示对应开关状态）
+        _isOn = LedService.GetProfileOn(_editingProfile) == 1;
         MasterToggle.IsChecked = _isOn;
         _suppress = false;
     }
